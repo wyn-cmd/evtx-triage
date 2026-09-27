@@ -236,7 +236,9 @@ class GapRule:
                 seconds = (later.timestamp - earlier.timestamp).total_seconds()
                 if seconds >= minutes * 60:
                     gaps.append((seconds, earlier, later))
-            gaps.sort(reverse=True)
+            # sorted by length alone, because two gaps of the same size would
+            # otherwise send the comparison on to the event objects
+            gaps.sort(key=lambda item: item[0], reverse=True)
             for seconds, earlier, later in gaps[:MAX_GAP_FINDINGS]:
                 findings.append(
                     Finding(

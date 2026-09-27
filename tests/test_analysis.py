@@ -137,6 +137,17 @@ class CorrelationTests(unittest.TestCase):
         entries += [(4624, {"TargetUserName": ("wstring", "alice")}, 120 + 86400 + offset) for offset in (0, 60, 120)]
         self.assertIn("EVT-CHANNEL-GAP", rules_for(run_all(self.builder_with(entries))))
 
+    def test_two_gaps_of_the_same_size_do_not_crash_the_rule(self):
+        # a System log with two equally long quiet stretches used to raise a
+        # TypeError while sorting them, because equal lengths sent the comparison
+        # on to the event objects
+        entries = [(1074, {"param1": ("wstring", "restart")}, offset) for offset in (0, 60, 120)]
+        entries += [(1074, {"param1": ("wstring", "restart")}, 86400 + offset) for offset in (0, 60, 120)]
+        entries += [(1074, {"param1": ("wstring", "restart")}, 172800 + offset) for offset in (0, 60, 120)]
+        findings = run_all(self.builder_with(entries))
+        gaps = [finding for finding in findings if finding.rule_id == "EVT-CHANNEL-GAP"]
+        self.assertEqual(len(gaps), 2)
+
 
 class EntityTests(unittest.TestCase):
     def test_private_address_classification(self):

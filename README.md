@@ -115,7 +115,7 @@ Programmatic use is the same code path the command line takes.
 
     python3 -m unittest discover -s tests -t .
 
-97 tests. The fixtures are built on the fly by a small EVTX writer in `tests/fixtures/evtx_builder.py`, which emits real headers, real checksums, real templates and real substitution arrays, so no event logs are committed to this repository and the tests can generate any edge case they need, including damaged records.
+98 tests. The fixtures are built on the fly by a small EVTX writer in `tests/fixtures/evtx_builder.py`, which emits real headers, real checksums, real templates and real substitution arrays, so no event logs are committed to this repository and the tests can generate any edge case they need, including damaged records.
 
 To also compare this parser against python-evtx, point it at a directory of real logs.
 
