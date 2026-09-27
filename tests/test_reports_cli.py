@@ -144,6 +144,16 @@ class CliTests(unittest.TestCase):
         self.assertEqual(code, 0)
         self.assertIn("Security", text)
 
+    def test_verify_prints_a_chunk_table(self):
+        # the human readable form is a table, not a dump of the verification
+        # dictionary, and it always ends with totals and a damage line
+        code, text = capture(["verify", benign_log()])
+        self.assertEqual(code, 0)
+        self.assertIn("chunk", text)
+        self.assertIn("readable", text)
+        self.assertIn("totals:", text)
+        self.assertIn("damage:", text)
+
     def test_missing_file_is_reported_without_a_traceback(self):
         code, text = capture(["info", "/nonexistent/sample.evtx"])
         self.assertNotEqual(code, 0)

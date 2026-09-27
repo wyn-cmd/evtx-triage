@@ -151,12 +151,69 @@ def command_verify(args):
         write_output(__import__("json").dumps(documents, indent=2, default=str))
         return 1 if problems else 0
     for document in documents:
-        write_output("FILE %s" % document["path"])
-        for key, value in sorted(document["verification"].items()):
-            write_output("  %-26s %s" % (key, value))
-        for entry in document["damage"]:
-            write_output("  damage %s" % entry)
+        print_verification(document)
     return 1 if problems else 0
+
+
+def print_verification(document):
+    # one compact block per file: the header facts, a line per chunk, the
+    # damaged regions, and the totals. everything the table leaves out is still
+    # available with --json
+    verification = document["verification"]
+    header = verification.get("header", {})
+    chunks = verification.get("chunks", [])
+    write_output("FILE  %s" % document["path"])
+    write_output("      format %s, %s bytes, %s chunks, header checksum %s" % (
+        header.get("format", "?"),
+        verification.get("file_size", 0),
+        header.get("chunk_count", 0),
+        "ok" if verification.get("header_checksum_ok") else "MISMATCH",
+    ))
+    write_output("      oldest chunk %s, current chunk %s, next record id %s, flags %s" % (
+        header.get("oldest_chunk", "?"),
+        header.get("current_chunk_number", "?"),
+        header.get("next_record_number", "?"),
+        ", ".join(header.get("flag_names") or []) or "none",
+    ))
+    write_output("")
+    write_output("      %5s %11s %9s %9s %7s %6s %7s  %s" % (
+        "chunk", "offset", "records", "readable", "header", "data", "slack", "state",
+    ))
+    for chunk in chunks:
+        claimed = chunk.get("records_claimed", 0)
+        readable = chunk.get("records_readable", 0)
+        if chunk.get("empty"):
+            state = "empty"
+        elif chunk.get("header_checksum_ok") and chunk.get("data_checksum_ok"):
+            state = "ok"
+        else:
+            state = "checksum mismatch"
+        write_output("      %5d %11s %9d %9d %7s %6s %7d  %s" % (
+            chunk.get("index", 0),
+            "0x%08x" % chunk.get("file_offset", 0),
+            claimed,
+            readable,
+            "ok" if chunk.get("header_checksum_ok") else "BAD",
+            "ok" if chunk.get("data_checksum_ok") else "BAD",
+            chunk.get("slack_bytes", 0),
+            state,
+        ))
+    claimed = sum(chunk.get("records_claimed", 0) for chunk in chunks)
+    readable = sum(chunk.get("records_readable", 0) for chunk in chunks)
+    slack = sum(chunk.get("slack_bytes", 0) for chunk in chunks)
+    write_output("")
+    write_output("      totals: %d chunks, %d records declared, %d readable, %d damaged, %d bytes of slack" % (
+        len(chunks), claimed, readable, claimed - readable, slack,
+    ))
+    damage = document.get("damage") or []
+    if not damage:
+        write_output("      damage: none")
+        return
+    write_output("      damage: %d region%s" % (len(damage), "" if len(damage) == 1 else "s"))
+    for entry in damage:
+        write_output("        0x%08x  %6d bytes  %s" % (
+            entry.get("offset", 0), entry.get("size", 0), entry.get("reason", ""),
+        ))
 
 
 def command_dump(args):
