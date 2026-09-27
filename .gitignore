@@ -1,0 +1,27 @@
+# byte code and packaging leftovers
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.venv/
+venv/
+
+# local test material, real event logs are never committed to this repo
+tests/files/*.evtx
+tests/files/*.EVTX
+*.evtx
+*.EVTX
+
+# editor and tooling noise
+.pytest_cache/
+.coverage
+htmlcov/
+.idea/
+.vscode/
+*.swp
+
+# working output from the cli
+out/
+*.report.json
+*.report.csv
