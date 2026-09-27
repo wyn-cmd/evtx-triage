@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "evtx-triage"
+version = "1.0.0"
+description = "Read Windows event logs straight from their binary form and triage them without any dependencies"
+readme = "README.md"
+requires-python = ">=3.8"
+license = { text = "MIT" }
+keywords = ["evtx", "dfir", "forensics", "windows", "event log", "incident response"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Environment :: Console",
+    "Intended Audience :: Information Technology",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Topic :: Security",
+]
+dependencies = []
+
+[project.optional-dependencies]
+# only needed to cross check this parser against another implementation
+reference = ["python-evtx"]
+
+[project.scripts]
+evtx-triage = "evtx_triage.cli:main"
+
+[tool.setuptools]
+packages = ["evtx_triage"]
