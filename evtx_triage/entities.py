@@ -8,7 +8,7 @@ import re
 IPV4 = re.compile(r"\b(?:(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)\.){3}(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)\b")
 # a windows path, used to pull the image name out of command lines
 WINDOWS_PATH = re.compile(r"[A-Za-z]:\\\\?[^\s\"']+|\\\\\\\\[^\s\"']+")
-# account references such as DOMAIN\\user or user@domain
+# account references such as DOMAIN\user or user@domain
 ACCOUNT = re.compile(r"\b([A-Za-z0-9._-]+)\\\\([A-Za-z0-9._$-]+)|\b([A-Za-z0-9._%-]+@[A-Za-z0-9.-]+)")
 # administrative shares are a strong lateral movement signal
 ADMIN_SHARE = re.compile(r"\\\\(?:[^\\]+)\\(ADMIN\$|C\$|IPC\$|print\$)", re.IGNORECASE)
@@ -19,10 +19,13 @@ ADDRESS_FIELDS = ("IpAddress", "SourceAddress", "DestinationAddress", "ClientAdd
 
 def is_private(address):
     # rfc1918, loopback and link local space, the addresses that never leave a network
-    parts = address.split(".")
-    if len(parts) != 4:
+    try:
+        parts = address.split(".")
+        if len(parts) != 4:
+            return False
+        first, second = int(parts[0]), int(parts[1])
+    except (ValueError, TypeError):
         return False
-    first, second = int(parts[0]), int(parts[1])
     if first == 10 or first == 127:
         return True
     if first == 172 and 16 <= second <= 31:
@@ -139,7 +142,7 @@ def harvest(event, entities):
         elif lowered.startswith("objectname"):
             entities.objects.add(value)
         else:
-            for candidate in IPV4.findall(value):
+            for candidate in IPV4.findall(str(value)):
                 # addresses can hide inside free text such as command lines
                 entities.addresses.add(candidate)
                 if is_private(candidate):
