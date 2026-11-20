@@ -121,6 +121,9 @@ def channel_coverage(events):
     # per channel: event count, the window it covers, and its longest quiet stretch
     grouped = {}
     for event in events:
+        # Skip events missing a timestamp to keep metrics accurate
+        if not event.timestamp:
+            continue
         grouped.setdefault(event.channel or "(none)", []).append(event)
     rows = []
     for channel, group in grouped.items():
